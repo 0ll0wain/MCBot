@@ -1,11 +1,11 @@
-from minecraft.networking.connection import Connection
-from minecraft.networking.packets import Packet, clientbound, serverbound
+from pyCraft.minecraft.networking.connection import Connection
+from pyCraft.minecraft.networking.packets import Packet, clientbound, serverbound
 import sys
-import time
+from time import sleep
 
 
 def ServerWakeUp():
-    connection = Connection("ioya.de", username="test")
+    connection = Connection("ioya.de", username="Prince Charming")
 
     def handle_join_game(join_game_packet):
         print('Connected.')
@@ -22,4 +22,4 @@ def ServerWakeUp():
 
     connection.connect()
 
-    time.sleep(2)
+    sleep(2)
