@@ -1,5 +1,5 @@
-from pyCraft.minecraft.networking.connection import Connection
-from pyCraft.minecraft.networking.packets import Packet, clientbound, serverbound
+from minecraft.networking.connection import Connection
+from minecraft.networking.packets import Packet, clientbound, serverbound
 import sys
 from time import sleep
 
