@@ -13,11 +13,13 @@ from minecraft.networking.connection import Connection
 from minecraft.networking.packets import Packet, clientbound, serverbound
 from time import sleep
 from datetime import timedelta
+import json
+import credentials
 
 SENDMESSAGE = range(1)
 
 updater = Updater(
-    token='1653554750:AAELwwCTnsIoOM7mffylv9z_kqR0dtKgtO0', use_context=True)
+    token=credentials.gebbybot_token, use_context=True)
 dispatcher = updater.dispatcher
 
 
@@ -28,7 +30,7 @@ server = MinecraftServer("ioya.de")
 def start(update, context):
     print(update.message.from_user.first_name)
     update.message.reply_text(
-        "Hello to the IOYA Minecraft server Bot!\nType /status to see how many players are online.\nType /wakeup to start the server if you want to play soon.")
+        "Hello to the IOYA Minecraft server Bot!\nType /status to see how many players are online.\nType /wakeup to start the server if you want to play soon.\nWith /startChat you can start to chat with people on the server. Everything you send will be forewarded to the server and backwards.\nWith /quit you can end the chat.")
 
 
 def status(update, context):
@@ -48,8 +50,8 @@ def wakeup(update, context):
 
 
 def startChat(update, context):
-    connection = Connection("ioya.de", username="belegram." + str(
-        update.message.from_user.first_name))
+    usr = "tg." + str(update.message.from_user.first_name)
+    connection = Connection("ioya.de", username=usr)
     context.user_data["connection"] = connection
 
     id = update.effective_chat.id
@@ -63,43 +65,52 @@ def startChat(update, context):
         handle_join_game, clientbound.play.JoinGamePacket)
 
     def print_chat(chat_packet):
-        context.bot.send_message(chat_id=update.effective_chat.id, text="Message (%s): %s" % (
-            chat_packet.field_string('position'), chat_packet.json_data))
+        msg = json.loads(chat_packet.json_data)
+        translate = msg["translate"]
+
+        if translate == "chat.type.text":
+            name = msg["with"][0]["text"]
+            content = msg["with"][1]["text"]
+            if name != usr:
+                context.bot.send_message(chat_id=update.effective_chat.id, text="%s: %s" % (
+                    name, content))
 
     connection.register_packet_listener(
         print_chat, clientbound.play.ChatMessagePacket)
 
     connection.connect()
-    print("4")
     return SENDMESSAGE
 
 
 def quitChat(update, context):
-    print("5")
     connection = context.user_data["connection"]
     context.user_data.pop("connection")
-    print("6")
     connection.disconnect()
     update.message.reply_text("Disconnected from Corona Land.")
-    print("7")
     return ConversationHandler.END
 
 
 def sendMessage(update, context):
-    print("8")
     connection = context.user_data["connection"]
-
     packet = serverbound.play.ChatPacket()
     packet.message = update.message.text
     connection.write_packet(packet)
-    print("9")
     return SENDMESSAGE
+
+
+def respawn(update, context):
+    print("respawning...")
+    connection = context.user_data["connection"]
+    packet = serverbound.play.ClientStatusPacket()
+    packet.action_id = serverbound.play.ClientStatusPacket.RESPAWN
+    connection.write_packet(packet)
 
 
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('status', status))
 dispatcher.add_handler(CommandHandler('wakeup', wakeup))
 dispatcher.add_handler(CommandHandler('send', sendMessage))
+dispatcher.add_handler(CommandHandler('respawn', respawn))
 
 convServerChat_handler = ConversationHandler(
     entry_points=[CommandHandler("startChat", startChat)],
