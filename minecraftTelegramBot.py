@@ -19,7 +19,7 @@ import credentials
 SENDMESSAGE = range(1)
 
 updater = Updater(
-    token=credentials.gebbybot_token, use_context=True)
+    token=credentials.mcbot_token, use_context=True)
 dispatcher = updater.dispatcher
 
 
