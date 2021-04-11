@@ -28,7 +28,6 @@ server = MinecraftServer("ioya.de")
 
 
 def start(update, context):
-    print(update.message.from_user.first_name)
     update.message.reply_text(
         "Hello to the IOYA Minecraft server Bot!\nType /status to see how many players are online.\nType /wakeup to start the server if you want to play soon.\nWith /startChat you can start to chat with people on the server. Everything you send will be forewarded to the server and backwards.\nWith /quit you can end the chat.")
 
@@ -119,7 +118,7 @@ convServerChat_handler = ConversationHandler(
             MessageHandler(Filters.text & (~Filters.command), sendMessage),
         ],
         ConversationHandler.TIMEOUT: [
-            MessageHandler(Filters.text & Filters.command, quitChat),
+            MessageHandler(Filters.all, quitChat),
         ],
     },
     fallbacks=[CommandHandler("quit", quitChat)],
